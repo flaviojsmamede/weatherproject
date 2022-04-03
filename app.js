@@ -1,30 +1,40 @@
 const express = require("express");
-
 const https = require("https");
+const bodyParser = require("body-parser");
 
 const app = express();
 
-app.get("/", function(req, res){
+app.use(bodyParser.urlencoded({extended: true}));
 
-  const url = "https://api.openweathermap.org/data/2.5/weather?q=Lisbon&appid=9f2c2ac34d0c1e53035fdc5b448eaa26&units=metric"
+app.get("/", function(req, res) {
+  res.sendFile(__dirname + "/index.html");
+});
+
+app.post("/", function(req, res){
+  const query = req.body.cityName;
+  const apiKey = "9f2c2ac34d0c1e53035fdc5b448eaa26";
+  const units = "metric";
+  const url = "https://api.openweathermap.org/data/2.5/weather?q=" + query + "&appid=" + apiKey + "&units=" + units;
 
   https.get(url, function(response) {
     console.log(response.statusCode);
 
-    response.on("data", function(data){
+    response.on("data", function(data) {
       const weatherData = JSON.parse(data)
       const temp = weatherData.main.temp
       const weatherDescription = weatherData.weather[0].description
       const icon = weatherData.weather[0].icon
       const imageURL = "http://openweathermap.org/img/wn/" + icon + "@2x.png"
-      res.write("<h1>The temperature in Lisbon is " + temp + " degrees Celcius.</h1>");
+      res.write("<h1>The temperature in " + query + " is " + temp + " degrees Celcius.</h1>");
       res.write("<p>The weather is currently " + weatherDescription + "</p>");
       res.write("<img src=" + imageURL + ">");
       res.send();
-    })
+    });
   });
-})
+});
 
-app.listen(3000, function(){
+
+
+app.listen(3000, function() {
   console.log("Server is running on port 3000.");
 })
